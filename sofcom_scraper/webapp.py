@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import threading
 from datetime import datetime
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from flask import Flask, jsonify, redirect, render_template_string, url_for
+from flask import Flask, jsonify, redirect, render_template_string, request, url_for
 
 from .app import run_once
 from .config import AppConfig
+from .credentials import save_credentials_to_env
 from .reporting import load_latest_generated_time, load_latest_summary_rows
 
 
@@ -15,6 +17,7 @@ def create_web_app(config: AppConfig) -> Flask:
     app = Flask(__name__)
     lock = threading.Lock()
     state = {"running": False, "last_error": "", "last_run": ""}
+    env_path = Path(".env")
 
     @app.get("/")
     def index():
@@ -30,7 +33,23 @@ def create_web_app(config: AppConfig) -> Flask:
             last_error=state["last_error"],
             now_text=now_text,
             timezone=config.timezone,
+            has_credentials=bool(config.username and config.password),
+            username=config.username,
         )
+
+    @app.post("/save-credentials")
+    def save_credentials():
+        username = (request.form.get("username") or "").strip()
+        password = request.form.get("password") or ""
+        if not username or not password:
+            state["last_error"] = "Моля въведете потребител и парола."
+            return redirect(url_for("index"))
+
+        save_credentials_to_env(env_path, username, password)
+        config.username = username
+        config.password = password
+        state["last_error"] = ""
+        return redirect(url_for("index"))
 
     @app.post("/run-now")
     def run_now():
@@ -97,6 +116,22 @@ _HTML_TEMPLATE = """
       color: #8d1b14;
       margin-bottom: 1rem;
     }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 1rem;
+    }
+    label { display: block; margin-bottom: 4px; font-weight: 600; }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      max-width: 420px;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #bbb;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -115,9 +150,22 @@ _HTML_TEMPLATE = """
 <body>
   <h1>SOFCOM Local Dashboard</h1>
   <div class="meta">Локално време ({{ timezone }}): {{ now_text }}</div>
+  <div class="card">
+    <h3>Вход в системата</h3>
+    <form method="post" action="{{ url_for('save_credentials') }}">
+      <label for="username">Потребител</label>
+      <input id="username" name="username" type="text" value="{{ username or '' }}" autocomplete="username" />
+      <label for="password">Парола</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" />
+      <button type="submit">Запази вход данни</button>
+    </form>
+    <div style="margin-top: 8px;">
+      Статус: {% if has_credentials %}<strong>готово</strong>{% else %}<strong>липсват данни</strong>{% endif %}
+    </div>
+  </div>
   <div class="row">
     <form method="post" action="{{ url_for('run_now') }}">
-      <button type="submit" {% if running %}disabled{% endif %}>
+      <button type="submit" {% if running or not has_credentials %}disabled{% endif %}>
         {% if running %}Изпълнява се...{% else %}Run now{% endif %}
       </button>
     </form>

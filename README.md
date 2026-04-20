@@ -76,24 +76,37 @@ If the Tracking form has a specific action dropdown/filter, set these in `.env`:
 
 When configured, the scraper iterates all action options and merges results.
 
-## 6) Local web dashboard (localhost)
+## 6) Най-лесно за ползване (без technical стъпки)
 
-Start local UI:
+Стартирай само:
+
+```bash
+python main.py
+```
+
+Ще се отвори автоматично страницата:
+
+- http://127.0.0.1:8080
+
+В страницата:
+
+1. попълваш **Потребител** и **Парола**
+2. натискаш **Запази вход данни**
+3. натискаш **Run now**
+
+Няма нужда да редактираш `.env` ръчно.
+
+### Ако искаш ръчно управление на web mode
 
 ```bash
 python main.py --web
 ```
 
-Open:
-
-- http://127.0.0.1:8080
-
-The dashboard shows the latest table and has a **Run now** button.
-
-You can customize host/port:
+Опции:
 
 ```bash
 python main.py --web --host 0.0.0.0 --port 8080
+python main.py --web --no-browser
 ```
 
 ## 7) Optional run via cron (instead of daemon)

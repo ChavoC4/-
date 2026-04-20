@@ -4,7 +4,9 @@ import argparse
 import logging
 import sys
 from datetime import datetime
+from threading import Timer
 from time import sleep
+import webbrowser
 from zoneinfo import ZoneInfo
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -50,6 +52,11 @@ def main() -> int:
         default=8080,
         help="Web UI port (default: 8080).",
     )
+    parser.add_argument(
+        "--no-browser",
+        action="store_true",
+        help="Do not auto-open browser when web UI starts.",
+    )
     args = parser.parse_args()
 
     load_dotenv()
@@ -60,10 +67,10 @@ def main() -> int:
     if args.daemon:
         return _run_scheduler(config)
     if args.web:
-        return _run_web_ui(config, args.host, args.port)
+        return _run_web_ui(config, args.host, args.port, auto_open=not args.no_browser)
 
-    parser.print_help()
-    return 1
+    # Default mode for non-technical users: start local dashboard directly.
+    return _run_web_ui(config, args.host, args.port, auto_open=not args.no_browser)
 
 
 def _run_once_and_print(config: AppConfig) -> int:
@@ -119,9 +126,13 @@ def _run_scheduler(config: AppConfig) -> int:
     return 0
 
 
-def _run_web_ui(config: AppConfig, host: str, port: int) -> int:
+def _run_web_ui(config: AppConfig, host: str, port: int, auto_open: bool) -> int:
     app = create_web_app(config)
-    LOGGER.info("Starting local web UI at http://%s:%d", host, port)
+    url = f"http://{host}:{port}"
+    browser_url = f"http://127.0.0.1:{port}" if host in {"0.0.0.0", "::"} else url
+    LOGGER.info("Starting local web UI at %s", url)
+    if auto_open:
+        Timer(1.0, lambda: webbrowser.open(browser_url)).start()
     app.run(host=host, port=port, debug=False)
     return 0
 
