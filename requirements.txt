@@ -1,0 +1,4 @@
+apscheduler
+ddddocr
+playwright
+python-dotenv
