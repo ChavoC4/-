@@ -43,6 +43,27 @@ def write_reports(
     }
 
 
+def load_latest_summary_rows(output_dir: Path) -> list[dict[str, str]]:
+    path = output_dir / "latest_summary.csv"
+    if not path.exists():
+        return []
+    with path.open("r", encoding="utf-8", newline="") as file:
+        reader = csv.DictReader(file)
+        return [dict(row) for row in reader]
+
+
+def load_latest_generated_time(output_dir: Path) -> str:
+    json_path = output_dir / "latest_raw.json"
+    if not json_path.exists():
+        return ""
+    try:
+        payload = json.loads(json_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return ""
+    generated_at = payload.get("generated_at", "")
+    return str(generated_at) if generated_at else ""
+
+
 def _write_csv(path: Path, rows: list[AggregatedRow]) -> None:
     with path.open("w", encoding="utf-8", newline="") as file:
         writer = csv.writer(file)

@@ -76,7 +76,27 @@ If the Tracking form has a specific action dropdown/filter, set these in `.env`:
 
 When configured, the scraper iterates all action options and merges results.
 
-## 6) Optional run via cron (instead of daemon)
+## 6) Local web dashboard (localhost)
+
+Start local UI:
+
+```bash
+python main.py --web
+```
+
+Open:
+
+- http://127.0.0.1:8080
+
+The dashboard shows the latest table and has a **Run now** button.
+
+You can customize host/port:
+
+```bash
+python main.py --web --host 0.0.0.0 --port 8080
+```
+
+## 7) Optional run via cron (instead of daemon)
 
 Example cron entry (daily 19:00 Europe/Sofia):
 

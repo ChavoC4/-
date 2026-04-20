@@ -1,4 +1,5 @@
 apscheduler
 ddddocr
+flask
 playwright
 python-dotenv

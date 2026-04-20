@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 
 from sofcom_scraper.app import run_once
 from sofcom_scraper.config import AppConfig
+from sofcom_scraper.webapp import create_web_app
 
 
 logging.basicConfig(
@@ -33,6 +34,22 @@ def main() -> int:
         action="store_true",
         help="Run scheduler daemon that triggers daily at configured time.",
     )
+    parser.add_argument(
+        "--web",
+        action="store_true",
+        help="Start local web UI on localhost.",
+    )
+    parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Web UI host (default: 127.0.0.1).",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8080,
+        help="Web UI port (default: 8080).",
+    )
     args = parser.parse_args()
 
     load_dotenv()
@@ -42,6 +59,8 @@ def main() -> int:
         return _run_once_and_print(config)
     if args.daemon:
         return _run_scheduler(config)
+    if args.web:
+        return _run_web_ui(config, args.host, args.port)
 
     parser.print_help()
     return 1
@@ -97,6 +116,13 @@ def _run_scheduler(config: AppConfig) -> int:
     except (KeyboardInterrupt, SystemExit):  # pragma: no cover - runtime path
         scheduler.shutdown(wait=False)
         LOGGER.info("Scheduler stopped at %s", datetime.now(tz=timezone).isoformat())
+    return 0
+
+
+def _run_web_ui(config: AppConfig, host: str, port: int) -> int:
+    app = create_web_app(config)
+    LOGGER.info("Starting local web UI at http://%s:%d", host, port)
+    app.run(host=host, port=port, debug=False)
     return 0
 
 
