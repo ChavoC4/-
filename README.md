@@ -76,17 +76,18 @@ If the Tracking form has a specific action dropdown/filter, set these in `.env`:
 
 When configured, the scraper iterates all action options and merges results.
 
-## 6) Най-лесно за ползване (без technical стъпки)
+## 6) Най-лесно за ползване (без terminal)
 
-Стартирай само:
+Използвай файла:
 
-```bash
-python main.py
-```
+- `start_sofcom_app.sh`
 
-Ще се отвори автоматично страницата:
+Това е launcher файл. Може да се стартира с двойно кликване (или с `./start_sofcom_app.sh`) и той:
 
-- http://127.0.0.1:8080
+1. проверява/инсталира нужните пакети
+2. стартира приложението
+3. отваря автоматично страницата:
+   - http://127.0.0.1:8080
 
 В страницата:
 
@@ -94,7 +95,7 @@ python main.py
 2. натискаш **Запази вход данни**
 3. натискаш **Run now**
 
-Няма нужда да редактираш `.env` ръчно.
+Няма нужда да редактираш `.env` ръчно и няма нужда от ръчни terminal команди след това.
 
 ### Ако искаш ръчно управление на web mode
 
